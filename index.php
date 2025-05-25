@@ -14,15 +14,12 @@ if(isset($_SESSION['login'])){
         if(array_key_exists($_SESSION['session_role'], $role_pages)){
             header('Location: ' . $role_pages[$_SESSION['session_role']]);
         } else {
-            // Jika role tidak dikenali, redirect ke dashboard default
-            header('Location: dashboard/index.php');
+            header('Location: ./login.php');
         }
     } else {
-        // Jika session role tidak ada, redirect ke dashboard default
-        header('Location: dashboard/index.php');
+        header('Location: ./login.php');
     }
 } else {
-    // Jika belum login, redirect ke halaman login
     header('Location: ./login.php');
 }
 exit();
