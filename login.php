@@ -7,7 +7,6 @@ $username = '';
 $password = '';
 $rememberme = '';
 
-// Ambil username dari cookie jika ada
 if (isset($_COOKIE['remember_username'])) {
     $username = $_COOKIE['remember_username'];
 }
@@ -20,7 +19,6 @@ if (isset($_POST['login'])) {
     if ($username === '' || $password === '') {
         $err .= "<li>Username atau password masih kosong.</li>";
     } else {
-        // Gunakan prepared statement untuk keamanan
         $stmt = $conn->prepare("SELECT * FROM login WHERE username = :username LIMIT 1");
         $stmt->execute(['username' => $username]);
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
