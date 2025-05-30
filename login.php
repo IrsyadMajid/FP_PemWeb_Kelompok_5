@@ -19,26 +19,52 @@ if (isset($_POST['login'])) {
     if ($username === '' || $password === '') {
         $err .= "<li>Username atau password masih kosong.</li>";
     } else {
-        $stmt = $conn->prepare("SELECT * FROM login WHERE username = :username LIMIT 1");
-        $stmt->execute(['username' => $username]);
-        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        $user_found = false;
+        $role = '';
+        $data = null;
 
-        if (!$data || $data['password'] !== $password) {
-            $err .= "<li><b>Username atau password yang anda masukkan salah</b></li>";
+        $stmt_admin = $conn->prepare("SELECT * FROM admin WHERE username = :username LIMIT 1");
+        $stmt_admin->execute(['username' => $username]);
+        $data_admin = $stmt_admin->fetch(PDO::FETCH_ASSOC);
+
+        if ($data_admin) {
+            if ($data_admin['PASSWORD'] === $password) {
+                $user_found = true;
+                $role = 'admin';
+                $data = $data_admin;
+            }
         }
 
-        if (empty($err)) {
+        if (!$user_found) {
+            $stmt_pegawai = $conn->prepare("SELECT * FROM pegawai WHERE username = :username AND status_aktif = TRUE LIMIT 1");
+            $stmt_pegawai->execute(['username' => $username]);
+            $data_pegawai = $stmt_pegawai->fetch(PDO::FETCH_ASSOC);
+
+            if ($data_pegawai) {
+                if ($data_pegawai['PASSWORD'] === $password) {
+                    $user_found = true;
+                    $role = 'pegawai';
+                    $data = $data_pegawai;
+                }
+            }
+        }
+
+        if (!$user_found) {
+            $err .= "<li><b>Username atau password yang Anda masukkan salah</b></li>";
+        }
+
+        if (empty($err) && $user_found) {
             $_SESSION['session_username'] = $username;
-            $_SESSION['session_role'] = $data['role'];
+            $_SESSION['session_role'] = $role;
             $_SESSION['login'] = true;
 
             if ($rememberme === '1') {
                 setcookie('remember_username', $username, time() + (86400 * 30), "/");
             } else {
-                setcookie('remember_username', '', time() - 3600, "/"); // Hapus cookie jika tidak dicentang
+                setcookie('remember_username', '', time() - 3600, "/");
             }
 
-            switch ($data['role']) {
+            switch ($role) {
                 case 'admin':
                     header("Location: admin/dashboard/index.php");
                     exit;
@@ -46,7 +72,7 @@ if (isset($_POST['login'])) {
                     header("Location: pegawai/dashboard/index.php");
                     exit;
                 default:
-                    header("Location: pegawai/dashboard/index.php");
+                    header("Location: index.php");
                     exit;
             }
         }

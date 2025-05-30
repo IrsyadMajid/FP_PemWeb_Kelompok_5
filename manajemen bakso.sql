@@ -26,10 +26,11 @@ CREATE DATABASE manajemen_bakso;
 USE manajemen_bakso;
 
 -- Tabel Admin
-CREATE TABLE admiin(
+CREATE TABLE admin(
     admin_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
-    PASSWORD VARCHAR(255) NOT NULL
+    PASSWORD VARCHAR(255) NOT NULL,
+    foto VARCHAR(255)
 );
 
 -- Tabel Pegawai
@@ -38,7 +39,8 @@ CREATE TABLE pegawai (
     nama VARCHAR(100) NOT NULL,
     username VARCHAR(50) NOT NULL,
     PASSWORD VARCHAR(255) NOT NULL,
-    status_aktif BOOLEAN DEFAULT TRUE
+    status_aktif BOOLEAN DEFAULT TRUE,
+    foto VARCHAR(255)
 );
 
 -- Tabel Barang
@@ -96,3 +98,10 @@ CREATE TABLE audit_log (
     waktu_aksi DATETIME NOT NULL
 );
 
+-- Tambahkan admin
+INSERT INTO admin (username, PASSWORD, foto) 
+VALUES ('admin', 'admin', 'foto-admin.jpg');
+
+-- Tambahkan pegawai
+INSERT INTO pegawai (nama, username, PASSWORD, status_aktif, foto) 
+VALUES ('Test User', 'pegawai', 'pegawai', 1, 'foto-pegawai.jpg');
