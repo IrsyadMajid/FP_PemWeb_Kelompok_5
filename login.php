@@ -32,6 +32,8 @@ if (isset($_POST['login'])) {
                 $user_found = true;
                 $role = 'admin';
                 $data = $data_admin;
+                // Jika perlu, simpan admin_id juga di session
+                $_SESSION['admin_id'] = $data_admin['admin_id'];
             }
         }
 
@@ -45,6 +47,9 @@ if (isset($_POST['login'])) {
                     $user_found = true;
                     $role = 'pegawai';
                     $data = $data_pegawai;
+
+                    // Tambahkan penyimpanan pegawai_id di session
+                    $_SESSION['pegawai_id'] = $data_pegawai['pegawai_id'];
                 }
             }
         }
@@ -80,14 +85,13 @@ if (isset($_POST['login'])) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link href="src/output.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Pegawai</title>
+    <link href="src/output.css" rel="stylesheet" />
 </head>
 <body class="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-500 to-white">
     <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
@@ -99,32 +103,54 @@ if (isset($_POST['login'])) {
 
         <form action="" method="post" role="form" class="flex flex-col space-y-6">
             <div class="relative">
-                <input type="text" id="username"
-                    class="border-b w-full focus:outline-none mt-1 py-1 focus:border-blue-800 focus:border-b-2 transition-colors duration-200  peer"
-                    autocomplete="off" placeholder=" " name="username" value="<?php echo $username ?>">
-                <label for="username" class="absolute left-0 top-1 text-gray-600 cursor-text transition-allpeer-placeholder-shown:top-1 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-focus:text-xs peer-focus:-top-4 peer-focus:text-purple-600 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:-top-4 peer-not-placeholder-shown:text-purple-600 transition-all">
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value="<?php echo htmlspecialchars($username) ?>"
+                    autocomplete="off"
+                    placeholder=" "
+                    class="border-b w-full focus:outline-none mt-1 py-1 focus:border-blue-800 focus:border-b-2 transition-colors duration-200 peer"
+                />
+                <label
+                    for="username"
+                    class="absolute left-0 top-1 text-gray-600 cursor-text transition-all peer-placeholder-shown:top-1 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-focus:text-xs peer-focus:-top-4 peer-focus:text-purple-600 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:-top-4 peer-not-placeholder-shown:text-purple-600 transition-all"
+                >
                     Username
                 </label>
             </div>
 
             <div class="relative">
-                <input type="password"
+                <input
+                    type="password"
+                    name="password"
+                    placeholder=" "
                     class="border-b w-full focus:outline-none mt-1 py-1 focus:border-blue-800 focus:border-b-2 transition-colors duration-200 peer"
-                    placeholder=" " name="password">
-                <label for="password"
-                    class="absolute left-0 top-1 text-gray-600 cursor-text transition-allpeer-placeholder-shown:top-1 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-focus:text-xs peer-focus:-top-4 peer-focus:text-purple-600 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:-top-4 peer-not-placeholder-shown:text-purple-600 transition-all">
+                />
+                <label
+                    for="password"
+                    class="absolute left-0 top-1 text-gray-600 cursor-text transition-all peer-placeholder-shown:top-1 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-focus:text-xs peer-focus:-top-4 peer-focus:text-purple-600 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:-top-4 peer-not-placeholder-shown:text-purple-600 transition-all"
+                >
                     Password
                 </label>
             </div>
 
             <label class="flex items-center space-x-2 text-sm text-gray-700">
-                <input type="checkbox" name="rememberme" value="1" <?php if ($rememberme == '1') echo "checked" ?>>
+                <input
+                    type="checkbox"
+                    name="rememberme"
+                    value="1"
+                    <?php if ($rememberme == '1') echo "checked" ?>
+                />
                 <span>Remember Me</span>
             </label>
 
-            <input type="submit" name="login"
-                class="bg-blue-600 text-white py-2 px-4 rounded-2xl hover:bg-blue-700 transition-colors duration-200"
-                value="Login" />
+            <input
+                type="submit"
+                name="login"
+                value="Login"
+                class="bg-blue-600 text-white py-2 px-4 rounded-2xl hover:bg-blue-700 transition-colors duration-200 cursor-pointer"
+            />
         </form>
     </div>
 </body>

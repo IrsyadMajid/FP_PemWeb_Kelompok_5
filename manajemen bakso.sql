@@ -45,13 +45,13 @@ CREATE TABLE pegawai (
 
 -- Tabel Barang
 CREATE TABLE barang (
-    barang_id INT AUTO_INCREMENT PRIMARY KEY,
-    nama_barang VARCHAR(100) NOT NULL,
-    stok INT NOT NULL,
-    harga_beli DECIMAL(10,2) NOT NULL,
-    harga_jual DECIMAL(10,2) NOT NULL,
-    stok_minimum INT NOT NULL
+  barang_id INT PRIMARY KEY,
+  nama_barang VARCHAR(100),
+  stok INT,
+  satuan VARCHAR(20),
+  harga INT
 );
+
 CREATE TABLE stok_pegawai (
     stok_id INT AUTO_INCREMENT PRIMARY KEY,
     pegawai_id INT NOT NULL,
