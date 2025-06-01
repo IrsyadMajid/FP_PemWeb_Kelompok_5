@@ -52,6 +52,16 @@ CREATE TABLE barang (
     harga_jual DECIMAL(10,2) NOT NULL,
     stok_minimum INT NOT NULL
 );
+CREATE TABLE stok_pegawai (
+    stok_id INT AUTO_INCREMENT PRIMARY KEY,
+    pegawai_id INT NOT NULL,
+    bakso_halus INT NOT NULL DEFAULT 0,
+    bakso_kasar INT NOT NULL DEFAULT 0,
+    bakso_puyuh INT NOT NULL DEFAULT 0,
+    tahu INT NOT NULL DEFAULT 0,
+    somay INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (pegawai_id) REFERENCES pegawai(pegawai_id)
+);
 
 -- Tabel Penjualan
 CREATE TABLE penjualan (
