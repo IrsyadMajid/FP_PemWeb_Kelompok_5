@@ -18,24 +18,25 @@ try {
 
     $pegawai_id = $_SESSION['pegawai_id'];
 
-    $stmt = $conn->prepare("
-        SELECT DATE(tanggal_laporan) AS tanggal, SUM(total_penjualan) AS total
-        FROM laporan
-        WHERE pegawai_id = :pegawai_id
-        GROUP BY tanggal
-        ORDER BY tanggal ASC
-        LIMIT 30
-    ");
+    $stmt = $conn->prepare("SELECT bakso_halus, bakso_kasar, bakso_puyuh, tahu, somay FROM stok_pegawai WHERE pegawai_id = :pegawai_id LIMIT 1");
     $stmt->bindParam(':pegawai_id', $pegawai_id, PDO::PARAM_INT);
     $stmt->execute();
 
-    $labels = [];
-    $data = [];
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $labels[] = $row['tanggal'];
-        $data[] = (int)$row['total'];
+    if (!$row) {
+        echo json_encode(['labels' => [], 'data' => []]);
+        exit();
     }
+
+    $labels = ['Bakso Halus', 'Bakso Kasar', 'Bakso Puyuh', 'Tahu', 'Somay'];
+    $data = [
+        (int)$row['bakso_halus'],
+        (int)$row['bakso_kasar'],
+        (int)$row['bakso_puyuh'],
+        (int)$row['tahu'],
+        (int)$row['somay']
+    ];
 
     echo json_encode([
         'labels' => $labels,

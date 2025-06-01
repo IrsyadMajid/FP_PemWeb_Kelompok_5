@@ -1,61 +1,83 @@
+<?php 
+session_start();
+if(!isset($_SESSION['session_username'])){
+    header('location: /login.php');
+    exit();
+}
+?>
+
+<?php require_once '../../assets/header-admin.php'; ?>
+<?php require_once '../../assets/navbar-admin.php'; ?>
+
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard Pegawai</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 p-6 font-sans">
+<body class="bg-gray-50 font-sans">
 
-  <h2 class="text-gray-700 text-xl font-semibold mb-6">Dashboard Pegawai</h2>
+  <div class="flex flex-col justify-center items-center min-h-screen px-4">
 
-  <div class="flex gap-6 justify-center">
+    <h1 class="text-2xl font-semibold mb-4 text-center text-gray-700">
+      Selamat datang, 
+      <span class="text-blue-600">
+        <?php echo htmlspecialchars($_SESSION['session_username']); ?>
+      </span>
+    </h1>
 
-    <div class="bg-white rounded-lg shadow-sm p-4 w-72 h-32 flex flex-col justify-center">
-      <span class="text-gray-600 text-sm mb-2">Rekap Penjualan Bulanan</span>
-      <canvas id="penjualanChart" class="w-full h-20"></canvas>
+    <h2 class="text-gray-700 text-xl font-semibold mb-6 text-center">Dashboard Pegawai</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-6xl w-full pl-16">
+
+      <div class="bg-white rounded-lg shadow p-6 h-80 flex flex-col">
+        <span class="text-gray-700 mb-4 font-semibold text-lg">Rekap Penjualan Harian</span>
+        <canvas id="penjualanChart" class="w-full flex-grow"></canvas>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6 h-80 flex flex-col">
+        <span class="text-gray-700 mb-4 font-semibold text-lg">Stok Barang</span>
+        <canvas id="stokChart" class="w-full flex-grow"></canvas>
+      </div>
+
     </div>
-
-    <div class="bg-white rounded-lg shadow-sm p-4 w-72 h-32 flex flex-col justify-center">
-      <span class="text-gray-600 text-sm mb-2">Stok Barang Terbaru</span>
-      <canvas id="stokChart" class="w-full h-20"></canvas>
-    </div>
-
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     async function loadPenjualan() {
-      // Path API relatif dari index.php
       const res = await fetch('./api/get_rekap_penjualan.php');
       const json = await res.json();
+      console.log('Penjualan data:', json);
       if(json.error){
         alert(json.error);
         return null;
       }
-
       return {
         labels: json.labels,
         datasets: [{
           data: json.data,
           borderColor: 'rgba(37, 99, 235, 0.8)',
-          backgroundColor: 'rgba(37, 99, 235, 0.2)',
+          backgroundColor: 'rgba(37, 99, 235, 0.3)',
           fill: true,
           tension: 0.3,
-          pointRadius: 0,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2
         }]
       };
     }
 
     async function loadStok() {
-      const res = await fetch('./api/get_stok_barang.php');
+      const res = await fetch('./api/get_stok_pegawai.php');
       const json = await res.json();
+      console.log('Stok data:', json);
       if(json.error){
         alert(json.error);
         return null;
       }
-
       return {
         labels: json.labels,
         datasets: [{
@@ -82,9 +104,24 @@
           data: penjualanData,
           options: {
             responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false }, y: { display: false } },
-            interaction: { intersect: false, mode: 'index' }
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true }
+            },
+            scales: {
+              x: {
+                display: true,
+                grid: { display: false },
+                ticks: { color: '#555', maxRotation: 0, minRotation: 0 }
+              },
+              y: {
+                display: true,
+                grid: { color: '#eee' },
+                ticks: { color: '#555', beginAtZero: true }
+              }
+            },
+            interaction: { intersect: false, mode: 'nearest' }
           }
         });
       }
@@ -95,10 +132,25 @@
           data: stokData,
           options: {
             responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false }, y: { display: false } },
-            barPercentage: 0.5,
-            categoryPercentage: 0.5,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true }
+            },
+            scales: {
+              x: {
+                display: true,
+                grid: { display: false },
+                ticks: { color: '#555' }
+              },
+              y: {
+                display: true,
+                grid: { color: '#eee' },
+                ticks: { color: '#555', beginAtZero: true }
+              }
+            },
+            barPercentage: 0.6,
+            categoryPercentage: 0.6,
           }
         });
       }
@@ -106,5 +158,6 @@
 
     renderCharts();
   </script>
+
 </body>
 </html>
