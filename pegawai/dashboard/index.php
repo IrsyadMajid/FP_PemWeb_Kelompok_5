@@ -1,52 +1,110 @@
-<?php 
-session_start();
-if (!isset($_SESSION['session_username']) || $_SESSION['session_role'] !== 'pegawai') {
-    header('location: /login.php');
-    exit();
-}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Pegawai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6 font-sans">
 
-require_once '../../conn.php';
+  <h2 class="text-gray-700 text-xl font-semibold mb-6">Dashboard Pegawai</h2>
 
-// Ambil data pegawai
-$username = $_SESSION['session_username'];
-$stmt = $conn->prepare("SELECT * FROM pegawai WHERE username = :username");
-$stmt->execute(['username' => $username]);
-$data = $stmt->fetch(PDO::FETCH_ASSOC);
+  <div class="flex gap-6 justify-center">
 
-if (!$data) {
-    header('location: /logout.php');
-    exit();
-}
-
-$idPegawai = $data['pegawai_id'];
-
-// Hitung total penghasilan bulan lalu
-$stmtPenghasilan = $conn->prepare("
-    SELECT SUM(total_penjualan) AS total_bulan_lalu 
-    FROM penjualan 
-    WHERE 
-        MONTH(tanggal_penjualan) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH) 
-        AND YEAR(tanggal_penjualan) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) 
-        AND pegawai_id = :pegawai_id
-");
-$stmtPenghasilan->execute(['pegawai_id' => $idPegawai]);
-$penghasilan = $stmtPenghasilan->fetch(PDO::FETCH_ASSOC);
-$totalBulanLalu = $penghasilan['total_bulan_lalu'] ?? 0;
-
-require_once '../../assets/header.php';
-require_once '../../assets/navbar.php';
-?>
-
-<div class="container mx-auto px-4 py-8">
-    <div class="text-center mb-8">
-        <img src="../../assets/images/<?php echo htmlspecialchars($data['foto']); ?>" alt="Foto Profil" class="mx-auto rounded-full w-48 h-48 object-cover border-4 border-blue-600 mb-4" />
-        <h1 class="text-4xl font-semibold text-gray-800"><?php echo htmlspecialchars($data['nama']); ?></h1>
-        <p class="text-gray-600 capitalize"><?php echo htmlspecialchars($_SESSION['session_role']); ?></p>
+    <div class="bg-white rounded-lg shadow-sm p-4 w-72 h-32 flex flex-col justify-center">
+      <span class="text-gray-600 text-sm mb-2">Rekap Penjualan Bulanan</span>
+      <canvas id="penjualanChart" class="w-full h-20"></canvas>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto text-center">
-        <i class="bi bi-cash-coin text-yellow-500 text-6xl mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Penghasilan Bulan Lalu</h2>
-        <p class="text-3xl font-bold text-green-600">Rp <?php echo number_format($totalBulanLalu, 0, ',', '.'); ?></p>
+    <div class="bg-white rounded-lg shadow-sm p-4 w-72 h-32 flex flex-col justify-center">
+      <span class="text-gray-600 text-sm mb-2">Stok Barang Terbaru</span>
+      <canvas id="stokChart" class="w-full h-20"></canvas>
     </div>
-</div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    async function loadPenjualan() {
+      // Path API relatif dari index.php
+      const res = await fetch('./api/get_rekap_penjualan.php');
+      const json = await res.json();
+      if(json.error){
+        alert(json.error);
+        return null;
+      }
+
+      return {
+        labels: json.labels,
+        datasets: [{
+          data: json.data,
+          borderColor: 'rgba(37, 99, 235, 0.8)',
+          backgroundColor: 'rgba(37, 99, 235, 0.2)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+        }]
+      };
+    }
+
+    async function loadStok() {
+      const res = await fetch('./api/get_stok_barang.php');
+      const json = await res.json();
+      if(json.error){
+        alert(json.error);
+        return null;
+      }
+
+      return {
+        labels: json.labels,
+        datasets: [{
+          data: json.data,
+          backgroundColor: [
+            'rgba(249, 115, 22, 0.7)',
+            'rgba(234, 179, 8, 0.7)',
+            'rgba(59, 130, 246, 0.7)',
+            'rgba(139, 92, 246, 0.7)',
+            'rgba(156, 163, 175, 0.7)'
+          ],
+          borderWidth: 0
+        }]
+      };
+    }
+
+    async function renderCharts() {
+      const penjualanData = await loadPenjualan();
+      const stokData = await loadStok();
+
+      if(penjualanData){
+        new Chart(document.getElementById('penjualanChart'), {
+          type: 'line',
+          data: penjualanData,
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } },
+            interaction: { intersect: false, mode: 'index' }
+          }
+        });
+      }
+
+      if(stokData){
+        new Chart(document.getElementById('stokChart'), {
+          type: 'bar',
+          data: stokData,
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } },
+            barPercentage: 0.5,
+            categoryPercentage: 0.5,
+          }
+        });
+      }
+    }
+
+    renderCharts();
+  </script>
+</body>
+</html>
