@@ -34,7 +34,7 @@ $data = $query->fetch(PDO::FETCH_ASSOC);
       <!-- Dropdown -->
       <div id="dropdownMenu" class="absolute right-0 mt-2 w-40 bg-white text-black rounded-md shadow-lg hidden z-50">
         <a href="/admin/profile/index.php" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
-        <a href="/logout.php" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+        <a href="/FP_PemWeb_Kelompok_5/logout.php" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
       </div>
     </div>
   </header>
