@@ -28,7 +28,7 @@ if(!isset($_SESSION['session_username'])){
       </span>
     </h1>
 
-    <h2 class="text-gray-700 text-xl font-semibold mb-6 text-center">Dashboard Pegawai</h2>
+    <h2 class="text-gray-700 text-xl font-semibold mb-6 text-center">Dashboard Admin</h2>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-6xl w-full pl-16">
 
