@@ -2,38 +2,43 @@
 session_start();
 require_once '../../conn.php';
 
-if (!isset($_SESSION['session_username'])) {
-    header("Location: /login.php");
-    exit();
-}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = $_POST['nama'];
     $username_pegawai = $_POST['username'];
     $password = $_POST['password'];
-    $foto = $_POST['foto'] ?? 'default-user.jpg';
-    
-    try {
-        $check_stmt = $conn->prepare("SELECT COUNT(*) FROM pegawai WHERE username = ?");
-        $check_stmt->execute([$username_pegawai]);
-        $username_exists = $check_stmt->fetchColumn();
-        
-        if ($username_exists > 0) {
-            $_SESSION['error'] = "Username sudah digunakan!";
+    $foto_nama = 'default-user.jpg'; // Default foto
+
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+        $upload_dir = '../../assets/images/';
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+        $max_size = 5 * 1024 * 1024; // 5 MB
+
+        $file_type = $_FILES['foto']['type'];
+        $file_size = $_FILES['foto']['size'];
+
+        if (in_array($file_type, $allowed_types) && $file_size <= $max_size) {
+            $file_extension = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+            $foto_nama = uniqid('pegawai_', true) . '.' . $file_extension;
+            $upload_file = $upload_dir . $foto_nama;
+
+            if (!move_uploaded_file($_FILES['foto']['tmp_name'], $upload_file)) {
+                $_SESSION['error'] = "Gagal mengunggah foto!";
+                header("Location: index.php");
+                exit();
+            }
+        } else {
+            $_SESSION['error'] = "Tipe file tidak valid atau ukuran terlalu besar!";
             header("Location: index.php");
             exit();
         }
+    }
+
+    try {
         
         $stmt = $conn->prepare("INSERT INTO pegawai (nama, username, password, status_aktif, foto) VALUES (?, ?, ?, 1, ?)");
-        $stmt->execute([$nama, $username_pegawai, $password, $foto]);
-        
-        $pegawai_id = $conn->lastInsertId();
-        $stmt = $conn->prepare("INSERT INTO stok_pegawai (pegawai_id) VALUES (?)");
-        $stmt->execute([$pegawai_id]);
-        
-        $stmt = $conn->prepare("INSERT INTO audit_log (user_id, role, aksi, waktu_aksi) VALUES (?, 'admin', ?, NOW())");
-        $stmt->execute([1, "Menambah pegawai: $nama"]);
-        
+        $stmt->execute([$nama, $username_pegawai, password_hash($password, PASSWORD_DEFAULT), $foto_nama]); // Hashing password
+                
         $_SESSION['message'] = "Pegawai '$nama' berhasil ditambahkan!";
         
     } catch (PDOException $e) {
