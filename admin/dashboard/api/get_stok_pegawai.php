@@ -10,7 +10,7 @@ if (!isset($_SESSION['pegawai_id'])) {
 $dbServer = 'localhost';
 $dbUser = 'root';
 $dbPass = '';
-$dbName = "manajemen bakso";
+$dbName = "manajemen_bakso";
 
 try {
     $conn = new PDO("mysql:host=$dbServer;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
