@@ -1,15 +1,18 @@
 <?php
-// memanggil file koneksi ke database
+// Memanggil file koneksi ke database
 include('conn.php');
 
+$conn = connection(); // Menggunakan koneksi PDO
 $status = '';
-$result = '';
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    if (isset($_GET['barang_id'])) {
-        $barang_id = $_GET['barang_id'];
-        $query = "SELECT * FROM barang WHERE barang_id = '$barang_id'";
-        $result = mysqli_query(connection(), $query);
-    }
+$data = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['barang_id'])) {
+    $barang_id = $_GET['barang_id'];
+    $query = "SELECT * FROM barang WHERE barang_id = :barang_id";
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':barang_id', $barang_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,11 +22,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $satuan = $_POST['satuan'];
     $harga = $_POST['harga'];
 
-    $sql = "UPDATE barang 
-            SET nama_barang='$nama_barang', stok='$stok', satuan='$satuan', harga='$harga' 
-            WHERE barang_id='$barang_id'";
-    $result = mysqli_query(connection(), $sql);
-    $status = $result ? 'ok' : 'err';
+    $query = "UPDATE barang 
+              SET nama_barang = :nama_barang, stok = :stok, satuan = :satuan, harga = :harga 
+              WHERE barang_id = :barang_id";
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':barang_id', $barang_id, PDO::PARAM_INT);
+    $stmt->bindParam(':nama_barang', $nama_barang, PDO::PARAM_STR);
+    $stmt->bindParam(':stok', $stok, PDO::PARAM_INT);
+    $stmt->bindParam(':satuan', $satuan, PDO::PARAM_STR);
+    $stmt->bindParam(':harga', $harga, PDO::PARAM_INT);
+
+    try {
+        $stmt->execute();
+        $status = 'ok';
+    } catch (PDOException $e) {
+        $status = 'err';
+    }
     header('Location: index.php?status=' . $status);
 }
 ?>
@@ -62,8 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 5px;
             margin-left: 70px;
         }
-        .form-group input,
-        .form-group select {
+        .form-group input {
             width: 75%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -84,15 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: rgb(9, 98, 233);
         }
         .view {
-        display: inline-block;
-        margin-top: 15px;
-        margin-left: 275px;
-        text-decoration: none;
-        background-color: #888;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-      }
+            display: inline-block;
+            margin-top: 15px;
+            margin-left: 275px;
+            text-decoration: none;
+            background-color: #888;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -100,32 +113,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="container">
     <h2>Form Update Barang</h2>
+    <?php if ($data): ?>
     <form action="update_stok_rumah.php" method="POST">
-        <?php while ($data = mysqli_fetch_array($result)): ?>
-            <div class="form-group">
-                <label>ID Barang</label>
-                <input type="text" name="barang_id" value="<?php echo $data['barang_id']; ?>" readonly>
-            </div>
-            <div class="form-group">
-                <label>Nama Barang</label>
-                <input type="text" name="nama_barang" value="<?php echo $data['nama_barang']; ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Stok</label>
-                <input type="number" name="stok" value="<?php echo $data['stok']; ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Satuan</label>
-                <input type="text" name="satuan" value="<?php echo $data['satuan']; ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Harga</label>
-                <input type="number" name="harga" value="<?php echo $data['harga']; ?>" required>
-            </div>
-        <?php endwhile; ?>
+        <div class="form-group">
+            <label>ID Barang</label>
+            <input type="text" name="barang_id" value="<?= htmlspecialchars($data['barang_id']) ?>" readonly>
+        </div>
+        <div class="form-group">
+            <label>Nama Barang</label>
+            <input type="text" name="nama_barang" value="<?= htmlspecialchars($data['nama_barang']) ?>" required>
+        </div>
+        <div class="form-group">
+            <label>Stok</label>
+            <input type="number" name="stok" value="<?= htmlspecialchars($data['stok']) ?>" required>
+        </div>
+        <div class="form-group">
+            <label>Satuan</label>
+            <input type="text" name="satuan" value="<?= htmlspecialchars($data['satuan']) ?>" required>
+        </div>
+        <div class="form-group">
+            <label>Harga</label>
+            <input type="number" name="harga" value="<?= htmlspecialchars($data['harga']) ?>" required>
+        </div>
         <button type="submit">Simpan</button>
         <a href="index.php" class="view">Kembali</a>
     </form>
+    <?php else: ?>
+        <p>Data barang tidak ditemukan.</p>
+    <?php endif; ?>
 </div>
 </body>
 </html>
