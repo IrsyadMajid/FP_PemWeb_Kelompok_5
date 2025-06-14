@@ -1,7 +1,6 @@
 <?php
 include 'conn.php';
 
-$conn = connection(); // Panggil koneksi dari conn.php
 $status = '';
 
 try {
