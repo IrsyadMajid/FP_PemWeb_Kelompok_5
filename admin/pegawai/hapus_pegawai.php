@@ -11,16 +11,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pegawai_id = $_POST['pegawai_id'];
     
     try {
-        $nama_stmt = $conn->prepare("SELECT nama FROM pegawai WHERE pegawai_id = ?");
+        $nama_stmt = $conn->prepare("SELECT nama, foto FROM pegawai WHERE pegawai_id = ?");
         $nama_stmt->execute([$pegawai_id]);
-        $nama_pegawai = $nama_stmt->fetchColumn();
+        $data_pegawai = $nama_stmt->fetch(PDO::FETCH_ASSOC);
         
-        if (!$nama_pegawai) {
+        if (!$data_pegawai) {
             $_SESSION['error'] = "Pegawai tidak ditemukan!";
             header("Location: index.php");
             exit();
         }
         
+        $nama_pegawai = $data_pegawai['nama'];
+        $nama_foto = $data_pegawai['foto'];
+
         $conn->beginTransaction();
         
         $penjualan_stmt = $conn->prepare("SELECT COUNT(*) FROM penjualan WHERE pegawai_id = ?");
@@ -42,6 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $stmt = $conn->prepare("DELETE FROM pegawai WHERE pegawai_id = ?");
             $stmt->execute([$pegawai_id]);
+
+            if ($nama_foto !== 'default-user.jpg') {
+                $foto_path = realpath(__DIR__ . '/../../assets/images/' . $nama_foto);
+                if ($foto_path && strpos($foto_path, realpath(__DIR__ . '/../../assets/images/')) === 0) {
+                    @unlink($foto_path); // pakai @ untuk suppress error jika file tidak ada
+                }
+            }
             
             $_SESSION['message'] = "Pegawai '$nama_pegawai' berhasil dihapus!";
         }

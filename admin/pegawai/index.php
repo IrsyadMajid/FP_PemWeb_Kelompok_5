@@ -115,7 +115,7 @@ $pegawai_list = $pegawai_query->fetchAll(PDO::FETCH_ASSOC);
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Tambah Pegawai Baru</h3>
-                <form action="tambah_pegawai.php" method="POST">
+                <form action="tambah_pegawai.php" method="POST" enctype="multipart/form-data">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nama</label>
                         <input type="text" name="nama" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -131,7 +131,7 @@ $pegawai_list = $pegawai_query->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Foto (nama file)</label>
-                        <input type="text" name="foto" placeholder="default-user.jpg" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <input type="file" name="foto" placeholder="default-user.jpg" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeModal('addModal')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">Batal</button>
@@ -146,7 +146,7 @@ $pegawai_list = $pegawai_query->fetchAll(PDO::FETCH_ASSOC);
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">Edit Pegawai</h3>
-                <form action="edit_pegawai.php" method="POST" id="editForm">
+                <form action="edit_pegawai.php" method="POST" id="editForm" enctype="multipart/form-data">
                     <input type="hidden" name="pegawai_id" id="edit_pegawai_id">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Nama</label>
@@ -158,7 +158,7 @@ $pegawai_list = $pegawai_query->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Foto (nama file)</label>
-                        <input type="text" name="foto" id="edit_foto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <input type="file" name="foto" id="edit_foto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div class="flex justify-end space-x-3">
                         <button type="button" onclick="closeModal('editModal')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">Batal</button>
@@ -239,7 +239,6 @@ $pegawai_list = $pegawai_query->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('edit_pegawai_id').value = pegawai.pegawai_id;
             document.getElementById('edit_nama').value = pegawai.nama;
             document.getElementById('edit_username').value = pegawai.username;
-            document.getElementById('edit_foto').value = pegawai.foto;
             openModal('editModal');
         }
 
