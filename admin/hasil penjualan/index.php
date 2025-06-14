@@ -12,7 +12,6 @@ if (!$path_conn || !file_exists($path_conn)) {
 }
 require_once $path_conn;
 
-// Data rekap penjualan pegawai
 $data_rekap = [];
 $total_keseluruhan = 0;
 

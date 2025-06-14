@@ -12,22 +12,49 @@ if (!$path_conn || !file_exists($path_conn)) {
 }
 require_once $path_conn;
 
+$pegawai_id = $_SESSION['pegawai_id'] ?? null;
+
 $error = '';
 $success = '';
 
+$menu_items = [
+    'bakso_halus' => 'Bakso Halus',
+    'bakso_kasar' => 'Bakso Kasar',
+    'bakso_puyuh' => 'Bakso Puyuh',
+    'tahu' => 'Tahu',
+    'siomay' => 'Siomay'
+];
+
+$harga_produk = [
+    'bakso_halus' => 15000,
+    'bakso_kasar' => 12000,
+    'bakso_puyuh' => 10000,
+    'tahu' => 8000,
+    'siomay' => 9000
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $pegawai_id = $_POST['pegawai_id'];
         $tanggal = $_POST['tanggal_penjualan'];
-        $total = $_POST['total_penjualan'];
 
-        if (empty($pegawai_id) || empty($tanggal) || empty($total)) {
-            throw new Exception("Semua field harus diisi");
+        $jumlah_penjualan = [];
+        $total = 0;
+        
+        foreach ($menu_items as $key => $nama) {
+            $jumlah = $_POST[$key] ?? 0;
+            $jumlah_penjualan[$key] = $jumlah;
+            $total += $jumlah * $harga_produk[$key];
         }
 
-        if (!is_numeric($total)) {
-            throw new Exception("Total harus berupa angka");
+        if (empty($tanggal)) {
+            throw new Exception("Tanggal penjualan harus diisi");
         }
+
+        if ($total <= 0) {
+            throw new Exception("Minimal harus ada 1 menu yang terjual");
+        }
+
+        $conn->beginTransaction();
 
         $stmt = $conn->prepare("INSERT INTO penjualan (pegawai_id, tanggal_penjualan, total_penjualan) 
                                VALUES (:pegawai_id, :tanggal, :total)");
@@ -36,10 +63,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':total', $total);
         $stmt->execute();
 
+        $penjualan_id = $conn->lastInsertId();
+
+        $stmt_stok = $conn->prepare("UPDATE stok_pegawai 
+                                    SET bakso_halus = bakso_halus - :bakso_halus,
+                                        bakso_kasar = bakso_kasar - :bakso_kasar,
+                                        bakso_puyuh = bakso_puyuh - :bakso_puyuh,
+                                        tahu = tahu - :tahu,
+                                        somay = somay - :siomay
+                                    WHERE pegawai_id = :pegawai_id");
+        $stmt_stok->bindParam(':bakso_halus', $jumlah_penjualan['bakso_halus']);
+        $stmt_stok->bindParam(':bakso_kasar', $jumlah_penjualan['bakso_kasar']);
+        $stmt_stok->bindParam(':bakso_puyuh', $jumlah_penjualan['bakso_puyuh']);
+        $stmt_stok->bindParam(':tahu', $jumlah_penjualan['tahu']);
+        $stmt_stok->bindParam(':siomay', $jumlah_penjualan['siomay']);
+        $stmt_stok->bindParam(':pegawai_id', $pegawai_id);
+        $stmt_stok->execute();
+
+        $conn->commit();
+
         $success = "Data penjualan berhasil ditambahkan!";
     } catch (PDOException $e) {
+        $conn->rollBack();
         $error = "Database error: " . $e->getMessage();
     } catch (Exception $e) {
+        $conn->rollBack();
         $error = $e->getMessage();
     }
 }
@@ -56,144 +104,239 @@ require_once '../../assets/navbar.php';
     <title>Tambah Penjualan</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
             margin: 0;
-            background-color: #f3f4f6;
+            padding: 0;
+            color: #333;
+        }
+        
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .content-wrapper {
+            flex: 1;
+            padding: 20px;
+            margin-left: 250px;
+            padding-top: 80px;
         }
 
-        .container {
-            padding-top: 120px;
-            padding-left: 120px;
-            display: grid;
-            place-items: center;
-        }
-
-        h1 {
-            font-size: 24px;
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
             margin-bottom: 20px;
-            color: #1e3a8a;
+            margin-left: 50px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d3748;
         }
 
         .form-container {
-            width: 750px;
+            max-width: 750px;
             margin: 0 auto;
-            background-color: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
+        
         .form-group {
             margin-bottom: 20px;
         }
-
+        
         label {
             display: block;
             margin-bottom: 8px;
-            color: #1e3a8a;
+            color: #4a5568;
             font-weight: 500;
         }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="number"] {
+        
+        .form-control {
             width: 100%;
             padding: 10px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
             font-size: 16px;
+            transition: border-color 0.2s;
         }
-
-        input:focus {
+        
+        .form-control:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        .form-control-static {
+            display: block;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
         }
 
-        button[type="submit"] {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border: none;
+        .menu-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
+        }
+
+        .menu-name {
             font-weight: 500;
         }
 
-        button[type="submit"]:hover {
-            background-color: #218838;
+        .menu-qty {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            text-align: center;
         }
 
-        .back-btn {
+        .btn {
             display: inline-block;
-            margin-left: 10px;
             padding: 10px 20px;
-            background-color: #6c757d;
-            color: white;
+            border-radius: 6px;
+            font-weight: 500;
             text-decoration: none;
-            border-radius: 6px;
-            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3182ce;
+        }
+        
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            border: none;
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #cbd5e0;
         }
 
-        .back-btn:hover {
-            background-color: #5a6268;
-        }
-
-        .error {
-            color: #dc3545;
-            background-color: #f8d7da;
-            padding: 10px;
+        .alert {
+            padding: 12px 16px;
             border-radius: 6px;
             margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
         }
-
-        .success {
-            color: #28a745;
-            background-color: #d4edda;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border: 1px solid #c3e6cb;
+        
+        .alert-error {
+            color: #9b2c2c;
+            background-color: #fed7d7;
+            border: 1px solid #feb2b2;
+        }
+        
+        .alert-success {
+            color: #276749;
+            background-color: #c6f6d5;
+            border: 1px solid #9ae6b4;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <main>
-            <h1>Tambah Data Penjualan</h1>
-            
-            <?php if ($error): ?>
-                <div class="error"><?= htmlspecialchars($error) ?></div>
-            <?php endif; ?>
-            
-            <?php if ($success): ?>
-                <div class="success"><?= htmlspecialchars($success) ?></div>
-            <?php endif; ?>
-            
-            <div class="form-container">
-                <form method="POST">
-                    <div class="form-group">
-                        <label for="pegawai_id">ID Pegawai</label>
-                        <input type="text" id="pegawai_id" name="pegawai_id" required>
+    <div class="main-container">
+        <div class="content-wrapper">
+            <div class="card">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <i class="fas fa-plus-circle" style="color: #4299e1; margin-right: 10px;"></i>
+                        Tambah Data Penjualan
+                    </h1>
+                </div>
+                
+                <?php if ($error): ?>
+                    <div class="alert alert-error">
+                        <?= htmlspecialchars($error) ?>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="tanggal_penjualan">Tanggal Penjualan</label>
-                        <input type="date" id="tanggal_penjualan" name="tanggal_penjualan" required>
+                <?php endif; ?>
+                
+                <?php if ($success): ?>
+                    <div class="alert alert-success">
+                        <?= htmlspecialchars($success) ?>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="total_penjualan">Total Penjualan</label>
-                        <input type="number" id="total_penjualan" name="total_penjualan" step="0.01" required>
-                    </div>
-                    
-                    <button type="submit">Simpan</button>
-                    <a href="index.php" style="margin-left: 10px;">Kembali</a>
-                </form>
+                <?php endif; ?>
+                
+                <div class="form-container">
+                    <form method="POST">
+                        <div class="form-group">
+                            <label for="pegawai_id">ID Pegawai</label>
+                            <div class="form-control-static">
+                                <?= htmlspecialchars($pegawai_id) ?>
+                            </div>
+                            <input type="hidden" name="pegawai_id" value="<?= htmlspecialchars($pegawai_id) ?>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="tanggal_penjualan">Tanggal Penjualan</label>
+                            <input type="date" id="tanggal_penjualan" name="tanggal_penjualan" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Menu yang Terjual</label>
+                            <div class="menu-list">
+                                <?php foreach ($menu_items as $key => $nama): ?>
+                                    <div class="menu-item">
+                                        <span class="menu-name"><?= htmlspecialchars($nama) ?></span>
+                                        <input type="number" name="<?= htmlspecialchars($key) ?>" min="0" value="0" class="menu-qty" placeholder="0">
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            <a href="index.php" class="btn btn-secondary">Kembali</a>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </main>
+        </div>
     </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const inputs = document.querySelectorAll('.menu-qty');
+            let totalItems = 0;
+            
+            inputs.forEach(input => {
+                totalItems += parseInt(input.value) || 0;
+            });
+            
+            if (totalItems === 0) {
+                e.preventDefault();
+                alert('Minimal harus ada 1 menu yang terjual');
+            }
+        });
+    </script>
 </body>
 </html>
