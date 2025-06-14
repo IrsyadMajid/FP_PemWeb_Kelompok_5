@@ -1,7 +1,6 @@
 <?php 
 include('conn.php'); 
 
-$conn = connection(); // Ambil koneksi hanya sekali
 $status = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
