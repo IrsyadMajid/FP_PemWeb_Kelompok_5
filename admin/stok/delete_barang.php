@@ -1,41 +1,35 @@
 <?php
-include('conn.php');
+include('conn.php'); // Koneksi ke database
 
-// Ambil koneksi
-$conn = connection();
-
+$conn = connection(); // Menggunakan PDO connection
 $status = '';
 
-// Mengecek apakah method GET dan parameter barang_id tersedia
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['barang_id'])) {
-    // Ambil dan sanitasi ID
-    $barang_id = intval($_GET['barang_id']);
+try {
+    // Mengecek apakah method GET dan parameter barang_id tersedia
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['barang_id'])) {
+        // Ambil dan sanitasi ID
+        $barang_id = intval($_GET['barang_id']);
 
-    // Siapkan query dengan placeholder
-    $stmt = $conn->prepare("DELETE FROM barang WHERE barang_id = ?");
-    
-    if ($stmt) {
-        // Binding parameter ke statement
-        $stmt->bind_param("i", $barang_id);
+        // Siapkan query dengan placeholder
+        $stmt = $conn->prepare("DELETE FROM barang WHERE barang_id = :barang_id");
 
         // Eksekusi query
-        if ($stmt->execute()) {
+        $stmt->execute([':barang_id' => $barang_id]);
+
+        // Periksa apakah ada baris yang dihapus
+        if ($stmt->rowCount() > 0) {
             $status = 'ok';
         } else {
-            $status = 'err';
+            $status = 'not_found';
         }
-
-        $stmt->close();
     } else {
-        $status = 'err';
+        $status = 'invalid';
     }
-
-    // Redirect ke halaman stok barang
-    header("Location: index.php?status=" . $status);
-    exit;
-} else {
-    // Redirect jika tidak ada barang_id
-    header("Location:index.php?status=invalid");
-    exit;
+} catch (Exception $e) {
+    $status = 'err';
 }
+
+// Redirect ke halaman stok barang
+header("Location: index.php?status=" . $status);
+exit;
 ?>
