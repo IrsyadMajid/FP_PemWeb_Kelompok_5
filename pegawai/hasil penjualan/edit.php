@@ -66,8 +66,8 @@ try {
     $error = $e->getMessage();
 }
 
-require_once '../../assets/header-admin.php';
-require_once '../../assets/navbar-admin.php';
+require_once '../../assets/header.php';
+require_once '../../assets/navbar.php';
 ?>
 
 <!DOCTYPE html>

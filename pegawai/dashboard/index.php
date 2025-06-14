@@ -6,8 +6,8 @@ if(!isset($_SESSION['session_username'])){
 }
 ?>
 
-<?php require_once '../../assets/header-admin.php'; ?>
-<?php require_once '../../assets/navbar-admin.php'; ?>
+<?php require_once '../../assets/header.php'; ?>
+<?php require_once '../../assets/navbar.php'; ?>
 
 <!DOCTYPE html>
 <html lang="id" >
