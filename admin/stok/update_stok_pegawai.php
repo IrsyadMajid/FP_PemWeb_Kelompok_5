@@ -1,7 +1,6 @@
 <?php
 include('conn.php'); // koneksi ke database
 
-$conn = connection(); // Koneksi dengan PDO
 $status = '';
 $data = [];
 
