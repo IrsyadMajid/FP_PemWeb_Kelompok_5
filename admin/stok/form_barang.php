@@ -1,25 +1,33 @@
 <?php 
-  include('db.php'); 
+include('conn.php'); 
 
-  $status = '';
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      $barang_id = $_POST['barang_id'];
-      $nama_barang = $_POST['nama_barang'];
-      $stok = $_POST['stok'];
-      $satuan = $_POST['satuan'];
-      $harga = $_POST['harga'];
+$status = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $barang_id = $_POST['barang_id'];
+    $nama_barang = $_POST['nama_barang'];
+    $stok = $_POST['stok'];
+    $satuan = $_POST['satuan'];
+    $harga = $_POST['harga'];
 
-      $query = "INSERT INTO barang (barang_id, nama_barang, stok, satuan, harga)
-                VALUES ('$barang_id', '$nama_barang', '$stok', '$satuan', '$harga')";
+    try {
+        $query = "INSERT INTO barang (barang_id, nama_barang, stok, satuan, harga) 
+                  VALUES (:barang_id, :nama_barang, :stok, :satuan, :harga)";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam(':barang_id', $barang_id, PDO::PARAM_INT);
+        $stmt->bindParam(':nama_barang', $nama_barang, PDO::PARAM_STR);
+        $stmt->bindParam(':stok', $stok, PDO::PARAM_INT);
+        $stmt->bindParam(':satuan', $satuan, PDO::PARAM_STR);
+        $stmt->bindParam(':harga', $harga, PDO::PARAM_INT);
 
-      $result = mysqli_query(connection(), $query);
-
-      if ($result) {
-        $status = 'ok';
-      } else {
+        if ($stmt->execute()) {
+            $status = 'ok';
+        } else {
+            $status = 'err';
+        }
+    } catch (PDOException $e) {
         $status = 'err';
-      }
-  }
+    }
+}
 ?>
 
 <!DOCTYPE html>
