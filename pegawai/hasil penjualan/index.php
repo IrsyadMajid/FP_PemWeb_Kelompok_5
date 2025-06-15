@@ -12,12 +12,10 @@ if (!$path_conn || !file_exists($path_conn)) {
 }
 require_once $path_conn;
 
-// Ambil ID pegawai yang login
 $pegawai_id = $_SESSION['pegawai_id'] ?? null;
 
 $data_penjualan = [];
 try {
-    // Hanya ambil data penjualan pegawai yang login
     $query = "SELECT * FROM penjualan WHERE pegawai_id = :pegawai_id ORDER BY tanggal_penjualan DESC";
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':pegawai_id', $pegawai_id, PDO::PARAM_INT);

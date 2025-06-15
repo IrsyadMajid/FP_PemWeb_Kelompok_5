@@ -149,29 +149,54 @@ require_once '../../assets/navbar-admin.php';
             color: #dd6b20;
         }
 
-        .action-btn {
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-action {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin: 0 3px;
-            transition: all 0.2s;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
         }
         
-        .action-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        .view-btn {
-            color: #4299e1;
+        .btn-detail {
             background-color: #ebf8ff;
+            color: #3182ce;
+            border: 1px solid #bee3f8;
         }
         
-        .print-btn {
-            color: #48bb78;
-            background-color: #f0fff4;
+        .btn-detail:hover {
+            background-color: #bee3f8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-action i {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .btn-action span {
+                display: none;
+            }
+            
+            .btn-action i {
+                margin-right: 0;
+            }
+            
+            .btn-action {
+                padding: 8px;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+            }
         }
 
         .empty-state {
@@ -234,12 +259,12 @@ require_once '../../assets/navbar-admin.php';
                                     <td>Rp <?= number_format((float)$row['total_penjualan'], 0, ',', '.') ?></td>
                                     <td><?= date('d M Y', strtotime($row['terakhir_transaksi'])) ?></td>
                                     <td>
-                                        <a href="detail.php?id=<?= $row['pegawai_id'] ?>" class="action-btn view-btn" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="cetak.php?id=<?= $row['pegawai_id'] ?>" class="action-btn print-btn" title="Cetak">
-                                            <i class="fas fa-print"></i>
-                                        </a>
+                                        <div class="action-buttons">
+                                            <a href="detail.php?id=<?= $row['pegawai_id'] ?>" class="btn-action btn-detail" title="Detail Penjualan">
+                                                <i class="fas fa-eye"></i>
+                                                <span>Detail</span>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
