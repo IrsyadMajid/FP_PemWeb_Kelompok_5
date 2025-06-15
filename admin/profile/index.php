@@ -47,4 +47,4 @@ $totalBulanLalu = $penghasilan['total_bulan_lalu'] ?? 0;
 </body>
 </html>
 
-<?php require_once '../../assets/navbar.php'; ?>
+<?php require_once '../../assets/navbar-admin.php'; ?>
