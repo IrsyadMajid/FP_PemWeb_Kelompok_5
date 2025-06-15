@@ -1,5 +1,5 @@
 <?php 
-include('conn.php'); 
+include('../../conn.php'); 
 
 $status = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

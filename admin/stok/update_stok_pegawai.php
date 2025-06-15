@@ -1,5 +1,5 @@
 <?php
-include('conn.php'); // koneksi ke database
+include('../../conn.php'); // koneksi ke database
 
 $status = '';
 $data = [];

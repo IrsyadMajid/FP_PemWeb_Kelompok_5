@@ -1,19 +1,23 @@
 <?php
-include 'conn.php'; // Menghubungkan ke file koneksi
+include '../../conn.php';
+session_start();
+
+if (!isset($_SESSION['session_username']) || $_SESSION['session_role'] != 'admin') {
+    header('Location: /login.php');
+    exit();
+}
 
 try {
-    // Query untuk tabel barang
     $queryBarang = "SELECT * FROM barang";
     $resultBarang = $conn->query($queryBarang);
-    
-    // Query untuk tabel stok pegawai
-    $queryPegawai = "SELECT s.*, p.nama AS nama_pegawai 
-                     FROM stok_pegawai s 
-                     JOIN pegawai p ON s.pegawai_id = p.pegawai_id";
+
+    $queryPegawai = "SELECT s.*, p.nama AS nama_pegawai FROM stok_pegawai s JOIN pegawai p ON s.pegawai_id = p.pegawai_id";
     $resultPegawai = $conn->query($queryPegawai);
 } catch (PDOException $e) {
     die("Query failed: " . $e->getMessage());
 }
+require_once '../../assets/header-admin.php';
+require_once '../../assets/navbar-admin.php';
 ?>
 
 <!DOCTYPE html>
@@ -22,105 +26,114 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="dashboard-container">
-        <header class="header" style="background-color: #414eff; color: white;">
-            <h1>Bakso Kediri</h1>
-            <img src="profile.png" alt="Profile Icon" class="profile-icon">
+<body class="bg-gray-100">
+    <div class="grid grid-cols-[200px_1fr] grid-rows-[auto_1fr] h-screen">
+        <header class="col-span-2 bg-blue-600 text-white p-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold">Bakso Kediri</h1>
+            <img src="profile.png" alt="Profile Icon" class="w-10 h-10 rounded-full bg-blue-400">
         </header>
-        <aside class="sidebar" style="background-color: rgb(85, 96, 250); color: white;">
-            <ul>
-                <li><a href="">Dashboard</a></li>
-                <li><a href="">Stok</a></li>
-                <li><a href="">Hasil Penjualan</a></li>
-                <li><a href="">Rekap</a></li>
-                <li><a href="">Pegawai</a></li>
+        <aside class="bg-blue-700 text-white p-4">
+            <ul class="space-y-4">
+                <li><a href="#" class="flex items-center gap-2 hover:text-blue-300"><span>Dashboard</span></a></li>
+                <li><a href="#" class="flex items-center gap-2 hover:text-blue-300"><span>Stok</span></a></li>
+                <li><a href="#" class="flex items-center gap-2 hover:text-blue-300"><span>Hasil Penjualan</span></a></li>
+                <li><a href="#" class="flex items-center gap-2 hover:text-blue-300"><span>Rekap</span></a></li>
+                <li><a href="#" class="flex items-center gap-2 hover:text-blue-300"><span>Pegawai</span></a></li>
             </ul>
         </aside>
-        <main class="main-content">
-            <h2>STOK RUMAH</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Barang</th>
-                        <th>Stok</th>
-                        <th>Satuan</th>
-                        <th>Harga</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    if ($resultBarang->rowCount() > 0) {
-                        $no = 1;
-                        foreach ($resultBarang as $row) {
-                            echo "<tr>";
-                            echo "<td>" . $no++ . "</td>";
-                            echo "<td>" . htmlspecialchars($row['nama_barang']) . "</td>";
-                            echo "<td>" . $row['stok'] . "</td>";
-                            echo "<td>" . $row['satuan'] . "</td>";
-                            echo "<td>Rp " . number_format($row['harga'], 0, ',', '.') . "</td>";
-                            echo "<td>
-                                    <a href='update_stok_rumah.php?barang_id=" . urlencode($row['barang_id']) . "' 
-                                       style='padding:6px 12px; background-color:#4CAF50; color:white; border-radius:4px; text-decoration:none;'>Update</a>
-                                    <a href='delete_barang.php?barang_id=" . urlencode($row['barang_id']) . "' 
-                                       onclick=\"return confirm('Yakin ingin menghapus barang ini?');\" 
-                                       style='padding:6px 12px; background-color:#f44336; color:white; border-radius:4px; text-decoration:none; margin-left:5px;'>Delete</a>
-                                  </td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='6'>Tidak ada data</td></tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
-            <button onclick="location.href='form_barang.php'">Input Stok Rumah</button>
-            <h2>STOK PEGAWAI</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID Stok</th>
-                        <th>Nama Pegawai</th>
-                        <th>Bakso Halus</th>
-                        <th>Bakso Kasar</th>
-                        <th>Bakso Puyuh</th>
-                        <th>Tahu</th>
-                        <th>Somay</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    if ($resultPegawai->rowCount() > 0) {
-                        foreach ($resultPegawai as $row) {
-                            echo "<tr>
-                                    <td>{$row['stok_id']}</td>
-                                    <td>{$row['nama_pegawai']}</td>
-                                    <td>{$row['bakso_halus']}</td>
-                                    <td>{$row['bakso_kasar']}</td>
-                                    <td>{$row['bakso_puyuh']}</td>
-                                    <td>{$row['tahu']}</td>
-                                    <td>{$row['somay']}</td>
-                                    <td>
-                                        <a href='update_stok_pegawai.php?stok_id={$row['stok_id']}' 
-                                           style='padding:6px 12px; background-color:#4CAF50; color:white; border-radius:4px; text-decoration:none;'>Update</a>
-                                        <a href='delete_stok_pegawai.php?stok_id={$row['stok_id']}' 
-                                           onclick=\"return confirm('Yakin ingin menghapus data stok ini?');\" 
-                                           style='padding:6px 12px; background-color:#f44336; color:white; border-radius:4px; text-decoration:none; margin-left:5px;'>Delete</a>
-                                    </td>
-                                  </tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='8'>Tidak ada data</td></tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
-            <button onclick="location.href='form_stok_pegawai.php'">Input Stok Pegawai</button>
+        <main class="p-6 overflow-y-auto flex flex-col items-center">
+            <div class="w-full max-w-5xl space-y-8">
+                <div>
+                    <h2 class="text-center text-2xl font-semibold mb-4">STOK RUMAH</h2>
+                    <div class="overflow-x-auto">
+                        <table class="table-auto w-full bg-white shadow-md rounded-lg border">
+                            <thead>
+                                <tr class="bg-blue-500 text-white">
+                                    <th class="px-4 py-2">No</th>
+                                    <th class="px-4 py-2">Nama Barang</th>
+                                    <th class="px-4 py-2">Stok</th>
+                                    <th class="px-4 py-2">Satuan</th>
+                                    <th class="px-4 py-2">Harga</th>
+                                    <th class="px-4 py-2">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                if ($resultBarang->rowCount() > 0) {
+                                    $no = 1;
+                                    foreach ($resultBarang as $row) {
+                                        echo "<tr class='text-center border-t'>";
+                                        echo "<td class='px-4 py-2'>" . $no++ . "</td>";
+                                        echo "<td class='px-4 py-2'>" . htmlspecialchars($row['nama_barang']) . "</td>";
+                                        echo "<td class='px-4 py-2'>" . $row['stok'] . "</td>";
+                                        echo "<td class='px-4 py-2'>" . $row['satuan'] . "</td>";
+                                        echo "<td class='px-4 py-2'>Rp " . number_format($row['harga'], 0, ',', '.') . "</td>";
+                                        echo "<td class='px-4 py-2 space-x-2'>
+                                                <a href='update_stok_rumah.php?barang_id=" . urlencode($row['barang_id']) . "' class='bg-green-500 text-white px-3 py-1 rounded'>Update</a>
+                                                <a href='delete_barang.php?barang_id=" . urlencode($row['barang_id']) . "' onclick=\"return confirm('Yakin ingin menghapus barang ini?');\" class='bg-red-500 text-white px-3 py-1 rounded'>Delete</a>
+                                              </td>";
+                                        echo "</tr>";
+                                    }
+                                } else {
+                                    echo "<tr><td colspan='6' class='text-center py-4'>Tidak ada data</td></tr>";
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button onclick="location.href='form_barang.php'" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded">Input Stok Rumah</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-center text-2xl font-semibold mb-4">STOK PEGAWAI</h2>
+                    <div class="overflow-x-auto">
+                        <table class="table-auto w-full bg-white shadow-md rounded-lg border">
+                            <thead>
+                                <tr class="bg-blue-500 text-white">
+                                    <th class="px-4 py-2">ID Stok</th>
+                                    <th class="px-4 py-2">Nama Pegawai</th>
+                                    <th class="px-4 py-2">Bakso Halus</th>
+                                    <th class="px-4 py-2">Bakso Kasar</th>
+                                    <th class="px-4 py-2">Bakso Puyuh</th>
+                                    <th class="px-4 py-2">Tahu</th>
+                                    <th class="px-4 py-2">Somay</th>
+                                    <th class="px-4 py-2">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                if ($resultPegawai->rowCount() > 0) {
+                                    foreach ($resultPegawai as $row) {
+                                        echo "<tr class='text-center border-t'>";
+                                        echo "<td class='px-4 py-2'>{$row['stok_id']}</td>";
+                                        echo "<td class='px-4 py-2'>{$row['nama_pegawai']}</td>";
+                                        echo "<td class='px-4 py-2'>{$row['bakso_halus']}</td>";
+                                        echo "<td class='px-4 py-2'>{$row['bakso_kasar']}</td>";
+                                        echo "<td class='px-4 py-2'>{$row['bakso_puyuh']}</td>";
+                                        echo "<td class='px-4 py-2'>{$row['tahu']}</td>";
+                                        echo "<td class='px-4 py-2'>{$row['somay']}</td>";
+                                        echo "<td class='px-4 py-2 space-x-2'>
+                                                <a href='update_stok_pegawai.php?stok_id={$row['stok_id']}' class='bg-green-500 text-white px-3 py-1 rounded'>Update</a>
+                                                <a href='delete_stok_pegawai.php?stok_id={$row['stok_id']}' onclick=\"return confirm('Yakin ingin menghapus data stok ini?');\" class='bg-red-500 text-white px-3 py-1 rounded'>Delete</a>
+                                              </td>";
+                                        echo "</tr>";
+                                    }
+                                } else {
+                                    echo "<tr><td colspan='8' class='text-center py-4'>Tidak ada data</td></tr>";
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button onclick="location.href='form_stok_pegawai.php'" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded">Input Stok Pegawai</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 </body>
