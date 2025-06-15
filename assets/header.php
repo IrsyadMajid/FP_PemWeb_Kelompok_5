@@ -11,7 +11,7 @@ $data = $query->fetch(PDO::FETCH_ASSOC);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Header Dropdown</title>
+  <title>Manajemen Bakso</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 </head>
@@ -25,15 +25,15 @@ $data = $query->fetch(PDO::FETCH_ASSOC);
     <!-- Kanan: Profile Dropdown -->
     <div class="relative">
       <button id="profileButton" class="flex items-center gap-2 focus:outline-none">
-        <img src="/assets/images/<?php echo $data['foto']; ?>" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+        <img src="../../assets/images/<?php echo $data['foto']; ?>" alt="Profile" class="w-8 h-8 rounded-full object-cover">
         <span class="font-medium"><?php echo $_SESSION['session_username']; ?></span>
         <i class="bi bi-caret-down-fill text-sm ml-1"></i>
       </button>
 
       <!-- Dropdown -->
       <div id="dropdownMenu" class="absolute right-0 mt-2 w-40 bg-white text-black rounded-md shadow-lg hidden z-50">
-        <a href="/pegawai/profile/index.php" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
-        <a href="/logout.php" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+        <a href="../../pegawai/profile/index.php" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
+        <a href="../../logout.php" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
       </div>
     </div>
   </header>
